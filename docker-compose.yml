@@ -1,0 +1,7 @@
+services:
+  status:
+    build: .
+    container_name: orbix_status
+    restart: unless-stopped
+    ports:
+      - "5185:80"

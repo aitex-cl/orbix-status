@@ -1,0 +1,49 @@
+name: Deploy orbix-status
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync files to VPS
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='.git'
+          path: ./
+          remote_path: /opt/orbix-status
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key:  ${{ secrets.SSH_KEY }}
+
+      - name: Deploy en VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key:      ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/orbix-status
+            docker compose build --no-cache
+            docker compose up -d
+
+            CADDY_FILE=/opt/orbix/app/Caddyfile
+            DOMAIN=status.orbix.cl
+
+            if ! grep -q "$DOMAIN" "$CADDY_FILE"; then
+              cat >> "$CADDY_FILE" << 'CADDYEOF'
+
+status.orbix.cl {
+  reverse_proxy 172.17.0.1:5185
+}
+CADDYEOF
+              docker restart orbix_caddy
+              echo "Caddy actualizado con $DOMAIN"
+            fi
+
+            echo "Deploy Status OK - $(date)"
