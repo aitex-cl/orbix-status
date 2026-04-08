@@ -36,12 +36,7 @@ jobs:
             DOMAIN=status.orbix.cl
 
             if ! grep -q "$DOMAIN" "$CADDY_FILE"; then
-              cat >> "$CADDY_FILE" << 'CADDYEOF'
-
-status.orbix.cl {
-  reverse_proxy 172.17.0.1:5185
-}
-CADDYEOF
+              printf '\nstatus.orbix.cl {\n  reverse_proxy 172.17.0.1:5185\n}\n' >> "$CADDY_FILE"
               docker restart orbix_caddy
               echo "Caddy actualizado con $DOMAIN"
             fi
