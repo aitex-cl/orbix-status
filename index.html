@@ -153,7 +153,7 @@
       <span class="tab-label">Documentación técnica</span>
     </button>
   </div>
-  <span class="nav-right" id="nav-version">v1.1.0</span>
+  <span class="nav-right" id="nav-version">v1.2.0</span>
 </nav>
 
 <div id="page-status" class="page active">
@@ -344,7 +344,7 @@
 // DATOS — única fuente de verdad del sitio
 // Actualizar aquí cada vez que cambie el estado de un módulo
 // ══════════════════════════════════════════════════════════════════
-const VERSION = 'v1.1.0';
+const VERSION = 'v1.2.0';
 
 const SECTIONS = [
   { title: 'Infraestructura y plataforma', items: [
@@ -359,6 +359,7 @@ const SECTIONS = [
     { name:'Health check',        key:'health',  status:'done',   desc:'GET /api/health con estado de PostgreSQL y Redis. Monitoreo proactivo cada 60 segundos.' },
     { name:'Backup pg_dump + WAL',key:'backup',  status:'done',   desc:'Dumps diarios a S3 + WAL archiving continuo (RPO ~5 min). Verificación automática semanal. Restore PITR.' },
     { name:'Rate limiting',       key:'rate',    status:'schema', desc:'Modelo TenantUsage en schema. Middleware de rate limiting por tenant pendiente de implementar.' },
+    { name:'2FA (TOTP+WhatsApp)', key:'2fa',     status:'plan',   desc:'Autenticación de dos factores con TOTP, WhatsApp Cloud API directo, email OTP y códigos de respaldo. Plan 4 PRs.' },
     { name:'SSO corporativo',     key:'sso',     status:'plan',   desc:'Integración SAML / Azure AD para empresas con directorio corporativo. Planificado para proyectos enterprise.' },
   ]},
   { title: 'Maestros compartidos', items: [
@@ -370,22 +371,24 @@ const SECTIONS = [
     { name:'Condiciones de pago',   key:'pagos',       status:'done', desc:'PaymentCondition. Integrado en cotizaciones.' },
   ]},
   { title: 'Módulos de negocio', items: [
-    { name:'Control de Gastos',       key:'gastos',        status:'done',   desc:'Expense, ExpenseReport, categorías, flujo de aprobación, pagos y adjuntos en S3.',                                                          price:'$1.000 / usuario / mes' },
-    { name:'Cotizaciones CLP/UF',     key:'cotizaciones',  status:'done',   desc:'Quote + QuoteItem, estados, folio automático, PDF, UF desde mindicador.cl, calculadora de servicios.',                                     price:'$3.500 / usuario / mes' },
-    { name:'Contact Relationships',   key:'contacts',      status:'done',   desc:'Inteligencia relacional: vínculos, tags automáticos, historial de eventos. Integrado con Cotizaciones.',                                   price:'$3.500 / usuario / mes' },
-    { name:'Fichas Empleados',        key:'empleados',     status:'schema', desc:'Modelo Employee completo (datos, banca, área). Sistema de documentos por empleado diseñado, UI pendiente.',                               price:'$2.000 / usuario / mes' },
-    { name:'Proyectos + Facturación', key:'proyectos',     status:'plan',   desc:'⭐ Prioridad 1. Ciclo completo: Cotización → OC → HES → Factura → Pago. Control P&L. Importación RCV SII.',                              price:'$12.000 / usuario / mes' },
-    { name:'Contratos Recurrentes',   key:'contratos',     status:'plan',   desc:'Prioridad 2. Contratos mensuales/trimestrales/semestrales. Vista planilla por período con estado OC/HES/Factura/Pago.',                   price:'Por definir' },
-    { name:'Control de Cambios TI',   key:'ti-cambios',    status:'plan',   desc:'Prioridad 3. Registro y trazabilidad de cambios en sistemas TI. Dirigido a áreas TI internas y empresas de soporte.',                    price:'Por definir' },
-    { name:'SSOMA / Prevención',      key:'ssoma',         status:'plan',   desc:'Carpeta de documentos por empleado con isSsomaFolder. Requiere módulo Empleados primero.',                                                price:'$6.500 / usuario / mes' },
-    { name:'Liquidaciones de Sueldo', key:'liquidaciones', status:'plan',   desc:'Generación y envío al empleado para recepción conforme.',                                                                                   price:'$4.500 / usuario / mes' },
-    { name:'Firma Electrónica',       key:'anexos',        status:'plan',   desc:'Anexos de contrato con FEA. Evaluando integración con misabogados.com o genera.cl.',                                                      price:'$9.000 / usuario / mes' },
-    { name:'Facturación DTE (SII)',   key:'facturacion',   status:'future', desc:'Cuentas por cobrar, facturación recurrente con aprobación, integración SII.',                                                             price:'$3.500 / usuario / mes' },
-    { name:'Contabilidad',            key:'contabilidad',  status:'future', desc:'Libro diario, mayor, balances. Integración SII completa.',                                                                                 price:'$5.500 / usuario / mes' },
-    { name:'Reconciliación Bancaria', key:'reconciliacion',status:'future', desc:'Conciliación bancaria automática.',                                                                                                        price:'$6.500 / usuario / mes' },
-    { name:'Inventario',              key:'inventario',    status:'future', desc:'Gestión de stock con entradas/salidas.',                                                                                                   price:'$2.000 / usuario / mes' },
-    { name:'Vacaciones / RRHH',       key:'vacaciones',    status:'future', desc:'Vacaciones, ausentismo, desempeño. Parte del ERP RRHH completo.',                                                                         price:'$3.000 / usuario / mes' },
-    { name:'CRM completo',            key:'crm',           status:'future', desc:'CRM completo sobre la base Contact ya implementada.',                                                                                      price:'$8.500 / usuario / mes' },
+    { name:'Control de Gastos',       key:'gastos',          status:'done',   desc:'v1.2.0 — Expense, ExpenseReport, categorías jerárquicas con flags grupo/hoja, flujo de aprobación, pagos y adjuntos en S3.',                                price:'$1.000 / usuario / mes' },
+    { name:'Cotizaciones CLP/UF',     key:'cotizaciones',    status:'done',   desc:'v1.3.0 — Quote + QuoteItem, estados, folio automático, PDF, UF desde mindicador.cl, calculadora de servicios.',                                                  price:'$3.500 / usuario / mes' },
+    { name:'Contact Relationships',   key:'contacts',        status:'done',   desc:'v1.0.0 — Inteligencia relacional: vínculos, tags automáticos, historial de eventos. Integrado con Cotizaciones.',                                                price:'$3.500 / usuario / mes' },
+    { name:'Empresa / Empleados',     key:'empleados',       status:'done',   desc:'v1.0.0 — Áreas, cargos, centros de costo y fichas de empleados completas. Documentos por empleado con categorías y SSOMA.',                                      price:'$2.000 / usuario / mes' },
+    { name:'Proyectos + Facturación', key:'proyectos',       status:'done',   desc:'v1.0.0 — Ciclo completo: Cotización → OC → HES → Factura → Pago. Flujo simple desde cotización aceptada y flujo complejo con milestones.',                       price:'$12.000 / usuario / mes' },
+    { name:'Contratos Recurrentes',   key:'contratos',       status:'done',   desc:'v1.0.0 — Contratos mensuales/trimestrales/semestrales. Vista planilla por período con estado OC/HES/Factura/Pago. Modos arrear/advance y HES global/por período.', price:'$4.500 / usuario / mes' },
+    { name:'Facturación DTE',         key:'facturacion',     status:'done',   desc:'v1.1.0 — Facturas emitidas y de proveedor (compras + ventas). Importación RCV SII desde Excel. Categorización con sugerencia inteligente por RUT.',              price:'$3.500 / usuario / mes' },
+    { name:'Soporte — Tickets',       key:'soporte-tickets', status:'done',   desc:'v1.1.0 — Ticketera con SLA, watchers, cierre por cliente externo vía link público (closeToken 7 días), force-close admin, imágenes S3 embebidas, estado WAITING_USER.', price:'$3.500 / usuario / mes' },
+    { name:'Soporte — Cambios TI',    key:'soporte-cambios', status:'done',   desc:'v1.1.0 — Solicitudes formales de cambio TI. Aprobación firmada vía link público (token único) con captura de nombre+cargo+RUT.',                                price:'$2.500 / usuario / mes' },
+    { name:'Tesorería',               key:'tesoreria',       status:'schema', desc:'v0.2.0 — Schema completo (BankAccount, BankTransaction con permisos por cuenta) + endpoints CRUD y transacciones manuales. UI completa pendiente PR2.',           price:'$4.500 / usuario / mes' },
+    { name:'SSOMA / Prevención',      key:'ssoma',           status:'plan',   desc:'Carpetas de documentos por empleado con flag isSsomaFolder ya disponible. Pantalla dedicada y reportes pendientes.',                                              price:'$6.500 / usuario / mes' },
+    { name:'Liquidaciones de Sueldo', key:'liquidaciones',   status:'plan',   desc:'Generación y envío al empleado para recepción conforme.',                                                                                                          price:'$4.500 / usuario / mes' },
+    { name:'Firma Electrónica',       key:'anexos',          status:'plan',   desc:'Anexos de contrato con FEA. Evaluando integración con misabogados.com o genera.cl.',                                                                              price:'$9.000 / usuario / mes' },
+    { name:'Contabilidad',            key:'contabilidad',    status:'future', desc:'Libro diario, mayor, balances. Integración SII completa.',                                                                                                          price:'$5.500 / usuario / mes' },
+    { name:'Reconciliación Bancaria', key:'reconciliacion',  status:'future', desc:'Conciliación bancaria automática.',                                                                                                                                 price:'$6.500 / usuario / mes' },
+    { name:'Inventario',              key:'inventario',      status:'future', desc:'Gestión de stock con entradas/salidas.',                                                                                                                            price:'$2.000 / usuario / mes' },
+    { name:'Vacaciones / RRHH',       key:'vacaciones',      status:'future', desc:'Vacaciones, ausentismo, desempeño. Parte del ERP RRHH completo.',                                                                                                  price:'$3.000 / usuario / mes' },
+    { name:'CRM completo',            key:'crm',             status:'future', desc:'CRM completo sobre la base Contact ya implementada.',                                                                                                              price:'$8.500 / usuario / mes' },
   ]}
 ];
 
